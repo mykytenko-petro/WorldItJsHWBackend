@@ -1,23 +1,30 @@
 import type { PostRepositoryContract } from "../../domain/post/repository";
+import { NotFoundError } from "../../domain/shared/errors";
 import type { PostServiceContract } from "./post.types";
 
 export function createPostService(repository: PostRepositoryContract): PostServiceContract {
     return {
-        getAllPosts(category?: string, take?: number) {
-            return repository.getAll(category, take);
+        async getAllPosts(category?: string, take?: number) {
+            return repository.getAllPosts(category, take);
         },
 
-        getPostById(id: number) {
-            return repository.getById(id);
+        async getPostById(id: number) {
+            const result = await repository.getPostById(id);
+
+            if (!result) {
+                throw new NotFoundError();
+            }
+
+            return result;
         },
 
-        createPost(
+        async createPost(
             title: string,
             content: string,
             author: string,
-            category: string
+            categoryId: number
         ) {
-            return repository.addPost(title, content, author, category)
+            return repository.addPost(title, content, author, categoryId)
         }
     }
 }

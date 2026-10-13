@@ -11,5 +11,4 @@ export interface CreatePostBody {
     title: string;
     content: string;
     author: string;
-    category: string;
 }

@@ -2,11 +2,11 @@ import type { PostEntity } from "../../domain/post/entity";
 
 export interface PostServiceContract {
     getAllPosts: (category?: string, take?: number) => Promise<PostEntity[]>;
-    getPostById: (id: number) => Promise<PostEntity | null>;
+    getPostById: (id: number) => Promise<PostEntity>;
     createPost: (
         title: string,
         content: string,
         author: string,
-        category: string
-    ) => Promise<PostEntity | null>;
+        categoryId: number
+    ) => Promise<PostEntity>;
 }
