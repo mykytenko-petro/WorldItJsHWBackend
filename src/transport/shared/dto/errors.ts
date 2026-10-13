@@ -5,3 +5,7 @@ export interface ValidationErrorResponse {
 export interface NotFoundErrorResponse {
     error: string;
 }
+
+export interface ConflictErrorResponse {
+    error: string;
+}

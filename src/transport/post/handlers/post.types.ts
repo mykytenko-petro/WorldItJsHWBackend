@@ -1,6 +1,6 @@
-import type { NotFoundErrorResponse, ValidationErrorResponse } from "../../dto/errors";
-import type { CreatePostBody, GetPostByIdParams, GetPostsQuery } from "../../dto/requests";
-import type { PostResponse } from "../../dto/responses";
+import type { NotFoundErrorResponse, ValidationErrorResponse } from "../../shared/dto/errors";
+import type { CreatePostBody, GetPostByIdParams, GetPostsQuery } from "../dto/requests";
+import type { PostResponse } from "../dto/responses";
 import type { Request, Response } from "express";
 
 export interface PostHandlerContract {

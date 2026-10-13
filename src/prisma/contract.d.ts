@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'24cfe54e778955625e8cca723924b617cbe5dc1acbebdd7a705683ddb420d126'>;
+  StorageHashBase<'5a73500856d002f1f0b94880fa3b4af73cf646a66ccf3dc0255347f6e9873277'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -241,31 +241,43 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
 
 export type FieldOutputTypes = {
   readonly public: {
+    readonly Category: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly name: CodecTypes['pg/text@1']['output'];
+    };
     readonly Post: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly title: CodecTypes['pg/text@1']['output'];
       readonly content: CodecTypes['pg/text@1']['output'];
       readonly author: CodecTypes['pg/text@1']['output'];
-      readonly category: CodecTypes['pg/text@1']['output'];
+      readonly categoryId: CodecTypes['pg/int4@1']['output'] | null;
     };
   };
 };
 export type FieldInputTypes = {
   readonly public: {
+    readonly Category: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly name: CodecTypes['pg/text@1']['input'];
+    };
     readonly Post: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly title: CodecTypes['pg/text@1']['input'];
       readonly content: CodecTypes['pg/text@1']['input'];
       readonly author: CodecTypes['pg/text@1']['input'];
-      readonly category: CodecTypes['pg/text@1']['input'];
+      readonly categoryId: CodecTypes['pg/int4@1']['input'] | null;
     };
   };
 };
 export type StorageColumnTypes = {
   readonly public: {
+    readonly category: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly name: CodecTypes['pg/text@1']['output'];
+    };
     readonly post: {
       readonly author: CodecTypes['pg/text@1']['output'];
-      readonly category: CodecTypes['pg/text@1']['output'];
+      readonly categoryId: CodecTypes['pg/int4@1']['output'] | null;
       readonly content: CodecTypes['pg/text@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly title: CodecTypes['pg/text@1']['output'];
@@ -274,9 +286,13 @@ export type StorageColumnTypes = {
 };
 export type StorageColumnInputTypes = {
   readonly public: {
+    readonly category: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly name: CodecTypes['pg/text@1']['input'];
+    };
     readonly post: {
       readonly author: CodecTypes['pg/text@1']['input'];
-      readonly category: CodecTypes['pg/text@1']['input'];
+      readonly categoryId: CodecTypes['pg/int4@1']['input'] | null;
       readonly content: CodecTypes['pg/text@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly title: CodecTypes['pg/text@1']['input'];
@@ -290,14 +306,22 @@ export namespace Models {
     title: CodecTypes['pg/text@1']['output'];
     content: CodecTypes['pg/text@1']['output'];
     author: CodecTypes['pg/text@1']['output'];
-    category: CodecTypes['pg/text@1']['output'];
-    readonly [RelationKeys]?: never;
+    categoryId: CodecTypes['pg/int4@1']['output'] | null;
+    category: public_Category | null;
+    readonly [RelationKeys]?: 'category';
+  };
+  export type public_Category = {
+    id: CodecTypes['pg/int4@1']['output'];
+    name: CodecTypes['pg/text@1']['output'];
+    posts: public_Post[];
+    readonly [RelationKeys]?: 'posts';
   };
 }
 
 export declare const models: {
   public: {
     Post: Models.public_Post;
+    Category: Models.public_Category;
   };
 };
 
@@ -319,6 +343,28 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
+            readonly category: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly name: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['name'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
             readonly post: {
               columns: {
                 readonly id: {
@@ -345,16 +391,36 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                 };
-                readonly category: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
+                readonly categoryId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [];
-              foreignKeys: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'post_categoryId_idx_15c304f2';
+                  readonly prefix: 'post_categoryId_idx';
+                  readonly columns: readonly ['categoryId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'post';
+                    readonly columns: readonly ['categoryId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'category';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
           };
         };
@@ -368,11 +434,42 @@ type ContractBase = Omit<
   readonly targetFamily: 'sql';
   readonly roots: {
     readonly post: { readonly namespace: 'public' & NamespaceId; readonly model: 'Post' };
+    readonly category: { readonly namespace: 'public' & NamespaceId; readonly model: 'Category' };
   };
   readonly domain: {
     readonly namespaces: {
       readonly public: {
         readonly models: {
+          readonly Category: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly name: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly posts: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Post' };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['categoryId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'category';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly name: { readonly column: 'name' };
+              };
+            };
+          };
           readonly Post: {
             readonly fields: {
               readonly id: {
@@ -391,12 +488,25 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
-              readonly category: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              readonly categoryId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
             };
-            readonly relations: Record<string, never>;
+            readonly relations: {
+              readonly category: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Category';
+                };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['categoryId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
             readonly storage: {
               readonly table: 'post';
               readonly namespaceId: 'public';
@@ -405,7 +515,7 @@ type ContractBase = Omit<
                 readonly title: { readonly column: 'title' };
                 readonly content: { readonly column: 'content' };
                 readonly author: { readonly column: 'author' };
-                readonly category: { readonly column: 'category' };
+                readonly categoryId: { readonly column: 'categoryId' };
               };
             };
           };

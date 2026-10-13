@@ -1,7 +1,6 @@
 import { Router } from "express";
-import type { PostHandlerContract } from "../../transport/handlers/post/post.types";
+import type { PostHandlerContract } from "../transport/post/handlers/post.types";
 
-// TODO: make type annotation for router
 export function createPostRouter(handler: PostHandlerContract) {
     const postRouter = Router();
     
