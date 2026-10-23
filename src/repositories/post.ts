@@ -1,16 +1,16 @@
 import type { PostRepositoryContract } from "../domain/post/repository";
-import { NotFoundError } from "../domain/shared/errors";
+import { DuplicateError, NotFoundError } from "../domain/shared/errors";
 import type { Database } from "./types";
 
 export function createPostRepository(db: Database): PostRepositoryContract {
     return {
         async getAllPosts(category, take) {
-            const query = db.orm.public.Post.include("category");
+            const query = db.orm.public.Post.include("category").include("user");
 
             if (category && take) {
-                const matchingCategory = await db.orm.public.Category
-                    .where({ name: category })
-                    .first();
+                const matchingCategory = await db.orm.public.Category.where({
+                    name: category,
+                }).first();
 
                 if (!matchingCategory) {
                     return [];
@@ -23,9 +23,9 @@ export function createPostRepository(db: Database): PostRepositoryContract {
             }
 
             if (category) {
-                const matchingCategory = await db.orm.public.Category
-                    .where({ name: category })
-                    .first();
+                const matchingCategory = await db.orm.public.Category.where({
+                    name: category,
+                }).first();
 
                 if (!matchingCategory) {
                     return [];
@@ -42,29 +42,45 @@ export function createPostRepository(db: Database): PostRepositoryContract {
         },
 
         async getPostById(id: number) {
-            return await db.orm.public.Post.where({id}).first()
+            return await db.orm.public.Post.where({ id }).first();
         },
 
-        async addPost(
-            title,
-            content,
-            author,
-            categoryId
-        ) {
-            const category = await db.orm.public.Category
-                .where({ id: categoryId })
-                .first();
+        async addPost(title, content, authorId, categoryId) {
+            const category = await db.orm.public.Category.where({
+                id: categoryId,
+            }).first();
 
             if (!category) {
-                throw new NotFoundError();
+                throw new NotFoundError(`Category with id ${categoryId} not found`);
             }
 
-            return await db.orm.public.Post.create({
-                title: title,
-                content: content,
-                author: author,
-                categoryId: categoryId
-            })
-        }
+            const user = await db.orm.public.User.where({
+                id: authorId
+            }).first();
+
+            if (!user) {
+                throw new NotFoundError(`User with id ${authorId} not found`);
+            }
+
+            try {
+                return await db.orm.public.Post.create({
+                    title: title,
+                    content: content,
+                    author: user.email,
+                    userId: authorId,
+                    categoryId: categoryId,
+                });
+            } catch (error) {
+                if (
+                    error instanceof Error &&
+                    "sqlState" in error &&
+                    error.sqlState == "23505"
+                ) {
+                    throw new DuplicateError(`Post already exists!`);
+                }
+
+                throw error;
+            }
+        },
     };
 }

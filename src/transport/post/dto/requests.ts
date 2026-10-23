@@ -10,5 +10,6 @@ export interface GetPostByIdParams {
 export interface CreatePostBody {
     title: string;
     content: string;
-    author: string;
+    authorId: number;
+    categoryId: number;
 }

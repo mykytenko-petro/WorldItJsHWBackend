@@ -2,7 +2,9 @@ import type { CategoriesRepositoryContract } from "../../domain/categories/repos
 import { NotFoundError } from "../../domain/shared/errors";
 import type { CategoriesServiceContract } from "./categories.types";
 
-export function createCategoriesService(repository: CategoriesRepositoryContract): CategoriesServiceContract {
+export function createCategoriesService(
+    repository: CategoriesRepositoryContract,
+): CategoriesServiceContract {
     return {
         async getAllCategories() {
             return repository.getAllCategories();
@@ -15,11 +17,11 @@ export function createCategoriesService(repository: CategoriesRepositoryContract
                 throw new NotFoundError();
             }
 
-            return result
+            return result;
         },
 
         async createCategory(name) {
             return await repository.addCategory(name);
-        }
-    }
+        },
+    };
 }

@@ -2,9 +2,14 @@ import type { CategoriesHandlerContract } from "./categories.types";
 import type { CategoriesServiceContract } from "../../../services/categories/categories.types";
 import { DuplicateError, NotFoundError } from "../../../domain/shared/errors";
 import { ValidationError } from "yup";
-import { validateCreateCategoryBody, validateGetCategoryByIdParams } from "../dto/validation";
+import {
+    validateCreateCategoryBody,
+    validateGetCategoryByIdParams,
+} from "../dto/validation";
 
-export function createCategoriesHandler(service: CategoriesServiceContract): CategoriesHandlerContract {
+export function createCategoriesHandler(
+    service: CategoriesServiceContract,
+): CategoriesHandlerContract {
     return {
         async getAllCategories(_, res) {
             const result = await service.getAllCategories();
@@ -21,11 +26,11 @@ export function createCategoriesHandler(service: CategoriesServiceContract): Cat
             } catch (error) {
                 if (error instanceof ValidationError) {
                     res.status(422).json({
-                        error: error.message
+                        error: error.message,
                     });
                 } else if (error instanceof NotFoundError) {
                     res.status(404).json({
-                        error: error.message
+                        error: error.message,
                     });
                 } else {
                     res.status(500).end();
@@ -43,7 +48,7 @@ export function createCategoriesHandler(service: CategoriesServiceContract): Cat
                 } catch (error) {
                     if (error instanceof DuplicateError) {
                         res.status(409).json({
-                            error: `category with name: ${name} exists`
+                            error: `category with name: ${name} exists`,
                         });
                     } else {
                         throw error;
@@ -52,22 +57,22 @@ export function createCategoriesHandler(service: CategoriesServiceContract): Cat
             } catch (error) {
                 if (error instanceof ValidationError) {
                     res.status(422).json({
-                        error: error.message
+                        error: error.message,
                     });
                 } else if (error instanceof DuplicateError) {
                     res.status(409).json({
-                        error: error.message
+                        error: error.message,
                     });
                 } else {
                     if (error instanceof Error) {
                         res.status(500).json({
-                            error: error.message
+                            error: error.message,
                         });
                     } else {
                         res.status(500).end();
                     }
                 }
             }
-        }
+        },
     };
 }
