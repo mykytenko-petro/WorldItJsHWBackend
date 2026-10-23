@@ -53,13 +53,13 @@ export function createPostHandler(
 
         async createPost(req, res) {
             try {
-                const { title, content, author, categoryId } =
+                const { title, content, authorId, categoryId } =
                     await validateCreatePostBody(req.body);
 
                 const result = await service.createPost(
                     title,
                     content,
-                    author,
+                    authorId,
                     categoryId,
                 );
 

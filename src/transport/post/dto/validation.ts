@@ -9,7 +9,7 @@ const INVALID_TAKE_VALUE_MESSAGE =
     "Query parameter 'take' must be a positive integer and not bigger than 2.";
 const INVALID_ID_MESSAGE = "Route parameter 'id' must be a positive integer.";
 const INVALID_POST_BODY_MESSAGE =
-    "Invalid payload. 'title', 'content', 'author' are required non-empty strings and 'category' must be a valid number.";
+    "Invalid payload. 'title' and 'content' are required non-empty strings, and 'authorId' and 'categoryId' must be positive integers.";
 
 const getPostsQuerySchema = object({
     category: string()
@@ -58,8 +58,14 @@ const requiredPostText = () =>
 const createPostBodySchema = object({
     title: requiredPostText(),
     content: requiredPostText(),
-    author: requiredPostText(),
+    authorId: number()
+        .strict()
+        .typeError(INVALID_POST_BODY_MESSAGE)
+        .integer(INVALID_POST_BODY_MESSAGE)
+        .moreThan(0, INVALID_POST_BODY_MESSAGE)
+        .required(INVALID_POST_BODY_MESSAGE),
     categoryId: number()
+        .strict()
         .typeError(INVALID_POST_BODY_MESSAGE)
         .integer(INVALID_POST_BODY_MESSAGE)
         .moreThan(0, INVALID_POST_BODY_MESSAGE)

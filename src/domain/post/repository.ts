@@ -1,12 +1,15 @@
-import type { PostEntity } from "./entity";
+import type { PostEntity, PostWithRelationsEntity } from "./entity";
 
 export interface PostRepositoryContract {
-    getAllPosts: (category?: string, take?: number) => Promise<PostEntity[]>;
+    getAllPosts: (
+        category?: string,
+        take?: number,
+    ) => Promise<PostWithRelationsEntity[]>;
     getPostById: (id: number) => Promise<PostEntity | null>;
     addPost: (
         title: string,
         content: string,
-        author: string,
+        authorId: number,
         categoryId: number,
     ) => Promise<PostEntity>;
 }

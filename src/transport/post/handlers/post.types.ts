@@ -7,13 +7,16 @@ import type {
     GetPostByIdParams,
     GetPostsQuery,
 } from "../dto/requests";
-import type { PostResponse } from "../dto/responses";
+import type {
+    PostResponse,
+    PostWithRelationsResponse,
+} from "../dto/responses";
 import type { Request, Response } from "express";
 
 export interface PostHandlerContract {
     getAllPosts: (
         req: Request<unknown, unknown, unknown, GetPostsQuery>,
-        res: Response<PostResponse[] | ValidationErrorResponse>,
+        res: Response<PostWithRelationsResponse[] | ValidationErrorResponse>,
     ) => void;
 
     getPostById: (
