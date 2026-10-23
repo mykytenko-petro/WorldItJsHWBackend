@@ -1,8 +1,8 @@
 export interface CategoriesResponse {
-    id: number
+    id: number;
     name: string;
 }
 
 export interface CreateCategoryBody {
-    name: string
+    name: string;
 }

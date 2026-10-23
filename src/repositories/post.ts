@@ -8,9 +8,9 @@ export function createPostRepository(db: Database): PostRepositoryContract {
             const query = db.orm.public.Post.include("category");
 
             if (category && take) {
-                const matchingCategory = await db.orm.public.Category
-                    .where({ name: category })
-                    .first();
+                const matchingCategory = await db.orm.public.Category.where({
+                    name: category,
+                }).first();
 
                 if (!matchingCategory) {
                     return [];
@@ -23,9 +23,9 @@ export function createPostRepository(db: Database): PostRepositoryContract {
             }
 
             if (category) {
-                const matchingCategory = await db.orm.public.Category
-                    .where({ name: category })
-                    .first();
+                const matchingCategory = await db.orm.public.Category.where({
+                    name: category,
+                }).first();
 
                 if (!matchingCategory) {
                     return [];
@@ -42,18 +42,13 @@ export function createPostRepository(db: Database): PostRepositoryContract {
         },
 
         async getPostById(id: number) {
-            return await db.orm.public.Post.where({id}).first()
+            return await db.orm.public.Post.where({ id }).first();
         },
 
-        async addPost(
-            title,
-            content,
-            author,
-            categoryId
-        ) {
-            const category = await db.orm.public.Category
-                .where({ id: categoryId })
-                .first();
+        async addPost(title, content, author, categoryId) {
+            const category = await db.orm.public.Category.where({
+                id: categoryId,
+            }).first();
 
             if (!category) {
                 throw new NotFoundError();
@@ -63,8 +58,8 @@ export function createPostRepository(db: Database): PostRepositoryContract {
                 title: title,
                 content: content,
                 author: author,
-                categoryId: categoryId
-            })
-        }
+                categoryId: categoryId,
+            });
+        },
     };
 }

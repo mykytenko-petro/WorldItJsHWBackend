@@ -3,7 +3,7 @@ import type { CategoriesHandlerContract } from "../transport/categories/handlers
 
 export function createCategoriesRouter(handler: CategoriesHandlerContract) {
     const postRouter = Router();
-    
+
     postRouter.get("/categories", handler.getAllCategories);
     postRouter.get("/categories/:id", handler.getCategoryById);
     postRouter.post("/categories", handler.createCategory);

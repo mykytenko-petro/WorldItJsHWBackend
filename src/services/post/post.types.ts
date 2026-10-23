@@ -7,6 +7,6 @@ export interface PostServiceContract {
         title: string,
         content: string,
         author: string,
-        categoryId: number
+        categoryId: number,
     ) => Promise<PostEntity>;
 }

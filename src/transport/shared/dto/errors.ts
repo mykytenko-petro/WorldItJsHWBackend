@@ -9,3 +9,7 @@ export interface NotFoundErrorResponse {
 export interface ConflictErrorResponse {
     error: string;
 }
+
+export interface InvalidCredentialsErrorResponse {
+    error: string;
+}
