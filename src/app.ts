@@ -1,4 +1,5 @@
 import express from "express";
+import cors, { type CorsOptions } from "cors";
 import { db } from "./prisma/db";
 import { createPostRepository } from "./repositories/post";
 import { createPostService } from "./services/post/post";
@@ -19,8 +20,17 @@ import { signAccessToken } from "./lib/jwt";
 const PORT = 8000;
 const HOST = "localhost";
 
+const corsOptions: CorsOptions = {
+    origin: "http://localhost:5173",
+    credentials: true
+}
+
 // app
 const app = express();
+
+// middleware connection
+app.use(express.json());
+app.use(cors(corsOptions))
 
 // composition root
 const categoriesRepository = createCategoriesRepository(db);
@@ -41,9 +51,6 @@ const userService = createUserService(
 );
 const userHandler = createUserHandler(userService);
 const userRouter = createUserRouter(userHandler);
-
-// middleware connection
-app.use(express.json());
 
 // router connection
 app.use("/", postRouter);
