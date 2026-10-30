@@ -24,4 +24,6 @@ export interface UserHandlerContract {
             | InvalidCredentialsErrorResponse
         >,
     ) => Promise<void>;
+    refresh: (req: Request, res: Response) => Promise<void>;
+    me: (_req: Request, res: Response) => Promise<void>;
 }

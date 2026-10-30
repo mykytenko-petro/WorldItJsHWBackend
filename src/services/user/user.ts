@@ -3,6 +3,7 @@ import type { UserRepositoryContract } from "../../domain/user/repository";
 import type {
     PasswordHasherContract,
     TokenSignerContract,
+    TokenVerifierContract,
     UserServiceContract,
 } from "./user.types";
 
@@ -10,6 +11,7 @@ export function createUserService(
     repository: UserRepositoryContract,
     passwordHasher: PasswordHasherContract,
     tokenSigner: TokenSignerContract,
+    tokenVerifier: TokenVerifierContract,
 ): UserServiceContract {
     return {
         async register(email, password) {
@@ -41,7 +43,27 @@ export function createUserService(
                     id: user.id,
                     email: user.email,
                 },
-                token: tokenSigner.signAccessToken(user.id),
+                accessToken: tokenSigner.signAccessToken(user.id),
+                refreshToken: tokenSigner.signRefreshToken(user.id),
+            };
+        },
+
+        async refresh(refreshToken) {
+            const userId = tokenVerifier.verifyRefreshToken(refreshToken);
+            const user = await repository.getUserById(userId);
+
+            return {
+                accessToken: tokenSigner.signAccessToken(user.id),
+                refreshToken: tokenSigner.signRefreshToken(user.id),
+            };
+        },
+
+        async me(id) {
+            const user = await repository.getUserById(id);
+
+            return {
+                id: user.id,
+                email: user.email,
             };
         },
     };

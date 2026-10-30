@@ -32,5 +32,15 @@ export function createUserRepository(db: Database): UserRepositoryContract {
 
             return result;
         },
+
+        async getUserById(id) {
+            const result = await db.orm.public.User.where({ id }).first();
+
+            if (!result) {
+                throw new NotFoundError(`User with id ${id} not found`);
+            }
+
+            return result;
+        },
     };
 }
