@@ -13,6 +13,10 @@ export interface TokenVerifierContract {
     verifyRefreshToken: (token: string) => number
 }
 
+export interface RefreshTokenHasherContract {
+    hashRefreshToken: (hash: string) => string;
+}
+
 export interface UserServiceContract {
     register: (
         email: string,
@@ -40,4 +44,5 @@ export interface UserServiceContract {
         id: number;
         email: string;
     }>;
+    logout: (refreshToken: string) => Promise<void>
 }

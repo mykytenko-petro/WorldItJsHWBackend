@@ -1,3 +1,4 @@
+import type { Response, CookieOptions } from "express";
 import type { UserServiceContract } from "../../../services/user/user.types";
 import type { UserHandlerContract } from "./user.types";
 import {
@@ -8,6 +9,36 @@ import {
 import { ValidationError } from "yup";
 import { validateLoginBody, validateRegisterBody } from "../dto/validation";
 
+const IS_PROD = process.env["NODE_ENV"] === "production";
+
+const BASE_COOKIE_OPTIONS: CookieOptions = {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: IS_PROD,
+};
+
+function setAuthCookies(
+    res: Response,
+    tokens: { accessToken: string; refreshToken: string },
+) {
+    res.cookie("accessToken", tokens.accessToken, {
+        ...BASE_COOKIE_OPTIONS,
+        maxAge: 15 * 60 * 1000,
+        path: "/",
+    });
+
+    res.cookie("refreshToken", tokens.refreshToken, {
+        ...BASE_COOKIE_OPTIONS,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: "/",
+    });
+}
+
+function clearAuthCookies(res: Response) {
+    res.clearCookie("accessToken", { ...BASE_COOKIE_OPTIONS, path: "/" });
+    res.clearCookie("refreshToken", { ...BASE_COOKIE_OPTIONS, path: "/auth" });
+}
+
 export function createUserHandler(
     service: UserServiceContract,
 ): UserHandlerContract {
@@ -17,7 +48,6 @@ export function createUserHandler(
                 const { email, password } = await validateRegisterBody(
                     req.body,
                 );
-
                 const user = await service.register(email, password);
 
                 res.status(201).json(user);
@@ -26,8 +56,6 @@ export function createUserHandler(
                     res.status(422).json({ error: error.message });
                 } else if (error instanceof DuplicateError) {
                     res.status(409).json({ error: error.message });
-                } else {
-                    res.status(500).end();
                 }
             }
         },
@@ -35,35 +63,18 @@ export function createUserHandler(
         async login(req, res) {
             try {
                 const { email, password } = await validateLoginBody(req.body);
-
                 const result = await service.login(email, password);
 
-                res.cookie("accessToken", result.accessToken, {
-                    httpOnly: true,
-                    sameSite: "lax",
-                    secure: process.env["NODE_ENV"] === "production",
-                    maxAge: 15 * 60 * 1000,
-                    path: "/",
-                });
-
-                res.cookie("refreshToken", result.refreshToken, {
-                    httpOnly: true,
-                    sameSite: "lax",
-                    secure: process.env["NODE_ENV"] === "production",
-                    maxAge: 7 * 24 * 60 * 60 * 1000,
-                    path: "/",
-                });
-
+                setAuthCookies(res, result);
                 res.status(200).json(result.user);
             } catch (error) {
                 if (error instanceof ValidationError) {
                     res.status(422).json({ error: error.message });
-                } else if (error instanceof InvalidCredentialsError) {
-                    res.status(401).json({ error: "Invalid password." });
-                } else if (error instanceof NotFoundError) {
-                    res.status(404).json({ error: error.message });
-                } else {
-                    res.status(500).end();
+                } else if (
+                    error instanceof InvalidCredentialsError ||
+                    error instanceof NotFoundError
+                ) {
+                    res.status(401).json({ error: "Invalid email or password." });
                 }
             }
         },
@@ -71,44 +82,66 @@ export function createUserHandler(
         async refresh(req, res) {
             const refreshToken = req.cookies?.["refreshToken"];
 
-            if (typeof refreshToken !== "string") {
-                res.status(401).json({ message: "Unathorized" });
+            if (typeof refreshToken !== "string" || !refreshToken) {
+                res.status(401).json({ error: "Unauthorized" });
                 return;
             }
 
             try {
                 const result = await service.refresh(refreshToken);
 
-                res.cookie("accessToken", result.accessToken, {
-                    httpOnly: true,
-                    sameSite: "lax",
-                    secure: process.env["NODE_ENV"] === "production",
-                    maxAge: 15 * 60 * 1000,
-                    path: "/",
-                });
-
-                res.cookie("refreshToken", result.refreshToken, {
-                    httpOnly: true,
-                    sameSite: "lax",
-                    secure: process.env["NODE_ENV"] === "production",
-                    maxAge: 7 * 24 * 60 * 60 * 1000,
-                    path: "/",
-                });
-                
-                res.status(200).json({ message: "tokens updated" });
+                setAuthCookies(res, result);
+                res.status(200).json({ message: "Tokens updated" });
             } catch (error) {
-                res.status(500).json({ message: "Internal Server Error" });
+                if (error instanceof InvalidCredentialsError) {
+                    clearAuthCookies(res);
+                    res.status(401).json({ error: "Invalid refresh token" });
+                }
             }
         },
 
         async me(_, res) {
             try {
-                const userId = res.locals["userId"];
-                const user = await service.me(userId);
+                const rawUserId = res.locals["userId"];
+                const userId =
+                    typeof rawUserId === "number"
+                        ? rawUserId
+                        : typeof rawUserId === "string" && rawUserId.trim() !== ""
+                        ? Number(rawUserId)
+                        : NaN;
 
+                if (!Number.isInteger(userId) || userId <= 0) {
+                    res.status(401).json({ error: "Unauthorized" });
+                    return;
+                }
+
+                const user = await service.me(userId);
                 res.status(200).json(user);
             } catch (error) {
-                res.status(500).json({ message: "Internal server error!" });
+                if (error instanceof NotFoundError) {
+                    res.status(404).json({ error: error.message });
+                }
+            }
+        },
+
+        async logout(req, res) {
+            const refreshToken = req.cookies?.["refreshToken"];
+
+            if (typeof refreshToken !== "string" || !refreshToken) {
+                res.status(401).json({ error: "Unauthorized" });
+                return;
+            }
+
+            try {
+                await service.logout(refreshToken);
+                clearAuthCookies(res);
+
+                res.status(200).json({ message: "Logged out" });
+            } catch (error) {
+                if (error instanceof NotFoundError) {
+                    clearAuthCookies(res);
+                    res.status(404).json({ error: error.message });
+                }
             }
         },
     };

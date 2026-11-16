@@ -1,5 +1,4 @@
 // use prisma-8
-
 model Post {
   id         Int       @id @default(autoincrement())
 
@@ -12,6 +11,8 @@ model Post {
 
   userId     Int?
   user       User?     @relation(fields:[userId], references:[id])
+
+  @@map("post")
 }
 
 model Category {
@@ -20,6 +21,8 @@ model Category {
   name  String @unique
 
   posts Post[]
+
+  @@map("category")
 }
 
 model User {
@@ -29,4 +32,20 @@ model User {
   password String
 
   posts    Post[]
+  sessions Session[]
+
+  @@map("user")
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+
+  tokenHash String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  
+  userId    Int
+  user      User     @relation(fields:[userId], references:[id])
+
+  @@map("session")
 }
