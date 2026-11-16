@@ -10,12 +10,12 @@ import { createCategoriesRepository } from "./repositories/categories";
 import { createCategoriesService } from "./services/categories/categories";
 import { createCategoriesHandler } from "./transport/categories/handlers/categories";
 import { createCategoriesRouter } from "./routers/categories";
-import { createUserRepository } from "./repositories/user";
+import { createSessionRepository, createUserRepository } from "./repositories/user";
 import { createUserService } from "./services/user/user";
 import { createUserHandler } from "./transport/user/handlers/user";
 import { createUserRouter } from "./routers/user";
 import { hashPassword, verifyPassword } from "./lib/password";
-import { signAccessToken, signRefreshToken, verifyAccessToken, verifyRefreshToken } from "./lib/jwt";
+import { hashRefreshToken, signAccessToken, signRefreshToken, verifyAccessToken, verifyRefreshToken } from "./lib/jwt";
 import { createRequireAuth } from "./transport/user/middleware/request-auth";
 
 // config
@@ -35,19 +35,24 @@ const app = express();
 const requireAuth = createRequireAuth(verifyAccessToken);
 
 // layers
+// categories
 const categoriesRepository = createCategoriesRepository(db);
 const categoriesService = createCategoriesService(categoriesRepository);
 const categoriesHandler = createCategoriesHandler(categoriesService);
 const categoriesRouter = createCategoriesRouter(categoriesHandler);
 
+// post
 const postRepository = createPostRepository(db);
 const postService = createPostService(postRepository);
 const postHandler = createPostHandler(postService);
 const postRouter = createPostRouter(postHandler, requireAuth);
 
+// user
+const sessionRepository = createSessionRepository(db);
 const userRepository = createUserRepository(db);
 const userService = createUserService(
     userRepository,
+    sessionRepository,
     {
         hashPassword: hashPassword,
         verifyPassword: verifyPassword
@@ -60,6 +65,9 @@ const userService = createUserService(
         verifyAccessToken: verifyAccessToken,
         verifyRefreshToken: verifyRefreshToken,
     },
+    {
+        hashRefreshToken
+    }
 );
 const userHandler = createUserHandler(userService);
 const userRouter = createUserRouter(userHandler, requireAuth);

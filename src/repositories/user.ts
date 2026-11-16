@@ -1,5 +1,8 @@
-import { DuplicateError, NotFoundError } from "../domain/shared/errors";
-import type { UserRepositoryContract } from "../domain/user/repository";
+import { DuplicateError, InvalidCredentialsError, NotFoundError } from "../domain/shared/errors";
+import type {
+    SessionRepositoryContract,
+    UserRepositoryContract,
+} from "../domain/user/repository";
 import type { Database } from "./types.js";
 
 export function createUserRepository(db: Database): UserRepositoryContract {
@@ -41,6 +44,49 @@ export function createUserRepository(db: Database): UserRepositoryContract {
             }
 
             return result;
+        },
+    };
+}
+
+export function createSessionRepository(
+    db: Database,
+): SessionRepositoryContract {
+    return {
+        async create(tokenHash, userId, expiresAt) {
+            await db.orm.public.Session.create({
+                tokenHash,
+                userId,
+                expiresAt,
+            });
+        },
+
+        async getByHash(tokenHash) {
+            const result = await db.orm.public.Session.where({
+                tokenHash,
+            }).first();
+
+            if (!result) {
+                throw new NotFoundError(`Session not found`);
+            }
+
+            return result;
+        },
+
+        async update(oldHash, newHash, expiresAt) {
+            const result = await db.orm.public.Session.where({
+                tokenHash: oldHash,
+            }).update({
+                tokenHash: newHash,
+                expiresAt,
+            });
+
+            if (!result) {
+                throw new InvalidCredentialsError();
+            }
+        },
+
+        async delete(tokenHash) {
+            await db.orm.public.Session.where({ tokenHash }).delete();
         },
     };
 }
