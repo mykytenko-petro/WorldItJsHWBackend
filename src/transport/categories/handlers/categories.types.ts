@@ -1,10 +1,10 @@
+import type { Request, Response } from "express";
 import type {
     NotFoundErrorResponse,
     ValidationErrorResponse,
 } from "../../shared/dto/errors";
 import type { GetCategoryByIdParams } from "../dto/requests";
 import type { CategoriesResponse, CreateCategoryBody } from "../dto/responses";
-import type { Request, Response } from "express";
 
 export interface CategoriesHandlerContract {
     getAllCategories: (

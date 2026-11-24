@@ -1,4 +1,4 @@
-import { Router, type RequestHandler } from "express";
+import { type RequestHandler, Router } from "express";
 import type { PostHandlerContract } from "../transport/post/handlers/post.types";
 
 export function createPostRouter(

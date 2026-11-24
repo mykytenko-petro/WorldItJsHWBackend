@@ -1,16 +1,13 @@
+import type { PostEntity } from "../../domain/post/entity";
 import type { PostRepositoryContract } from "../../domain/post/repository";
 import { NotFoundError } from "../../domain/shared/errors";
 import type { PostServiceContract } from "./post.types";
-import type { PostEntity } from "../../domain/post/entity";
 
 export function createPostService(
     repository: PostRepositoryContract,
 ): PostServiceContract {
     return {
-        async getAllPosts(
-            category,
-            take,
-        ) {
+        async getAllPosts(category, take) {
             const posts = await repository.getAllPosts(category, take);
 
             return posts.map(({ user, ...post }) => ({

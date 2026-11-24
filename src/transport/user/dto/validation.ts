@@ -1,4 +1,4 @@
-import { object, string, type InferType } from "yup";
+import { type InferType, object, string } from "yup";
 import { validate } from "../../shared/dto/validation";
 
 const INVALID_CREDENTIALS_MESSAGE = "Email and password are required.";

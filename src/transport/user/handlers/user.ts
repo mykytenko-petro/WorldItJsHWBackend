@@ -1,15 +1,15 @@
-import type { Response, CookieOptions } from "express";
-import type { UserServiceContract } from "../../../services/user/user.types";
-import type { UserHandlerContract } from "./user.types";
+import type { CookieOptions, Response } from "express";
+import { ValidationError } from "yup";
 import {
     DuplicateError,
     InvalidCredentialsError,
     NotFoundError,
 } from "../../../domain/shared/errors";
-import { ValidationError } from "yup";
+import type { UserServiceContract } from "../../../services/user/user.types";
 import { validateLoginBody, validateRegisterBody } from "../dto/validation";
+import type { UserHandlerContract } from "./user.types";
 
-const IS_PROD = process.env["NODE_ENV"] === "production";
+const IS_PROD = process.env.NODE_ENV === "production";
 
 const BASE_COOKIE_OPTIONS: CookieOptions = {
     httpOnly: true,
@@ -36,7 +36,7 @@ function setAuthCookies(
 
 function clearAuthCookies(res: Response) {
     res.clearCookie("accessToken", { ...BASE_COOKIE_OPTIONS, path: "/" });
-    res.clearCookie("refreshToken", { ...BASE_COOKIE_OPTIONS, path: "/auth" });
+    res.clearCookie("refreshToken", { ...BASE_COOKIE_OPTIONS, path: "/" });
 }
 
 export function createUserHandler(
@@ -74,13 +74,15 @@ export function createUserHandler(
                     error instanceof InvalidCredentialsError ||
                     error instanceof NotFoundError
                 ) {
-                    res.status(401).json({ error: "Invalid email or password." });
+                    res.status(401).json({
+                        error: "Invalid email or password.",
+                    });
                 }
             }
         },
 
         async refresh(req, res) {
-            const refreshToken = req.cookies?.["refreshToken"];
+            const refreshToken = req.cookies?.refreshToken;
 
             if (typeof refreshToken !== "string" || !refreshToken) {
                 res.status(401).json({ error: "Unauthorized" });
@@ -102,13 +104,14 @@ export function createUserHandler(
 
         async me(_, res) {
             try {
-                const rawUserId = res.locals["userId"];
+                const rawUserId = res.locals.userId;
                 const userId =
                     typeof rawUserId === "number"
                         ? rawUserId
-                        : typeof rawUserId === "string" && rawUserId.trim() !== ""
-                        ? Number(rawUserId)
-                        : NaN;
+                        : typeof rawUserId === "string" &&
+                            rawUserId.trim() !== ""
+                          ? Number(rawUserId)
+                          : NaN;
 
                 if (!Number.isInteger(userId) || userId <= 0) {
                     res.status(401).json({ error: "Unauthorized" });
@@ -125,7 +128,7 @@ export function createUserHandler(
         },
 
         async logout(req, res) {
-            const refreshToken = req.cookies?.["refreshToken"];
+            const refreshToken = req.cookies?.refreshToken;
 
             if (typeof refreshToken !== "string" || !refreshToken) {
                 res.status(401).json({ error: "Unauthorized" });

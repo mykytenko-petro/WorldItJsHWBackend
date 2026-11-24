@@ -1,12 +1,12 @@
 import type { Request, Response } from "express";
-import type { UserCredentialsBody } from "../dto/requests";
-import type { UserResponse } from "../dto/responses";
 import type {
     ConflictErrorResponse,
     InvalidCredentialsErrorResponse,
     NotFoundErrorResponse,
     ValidationErrorResponse,
 } from "../../shared/dto/errors";
+import type { UserCredentialsBody } from "../dto/requests";
+import type { UserResponse } from "../dto/responses";
 
 export interface UserHandlerContract {
     register: (

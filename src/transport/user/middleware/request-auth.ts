@@ -8,15 +8,15 @@ export function createRequireAuth(
 
         if (typeof token !== "string") {
             res.status(401).json({ message: "Unauthorized" });
-            
+
             return;
         }
 
         try {
-            res.locals["userId"] = verifyAccessToken(token);
+            res.locals.userId = verifyAccessToken(token);
 
             next();
-        } catch (error) {
+        } catch (_error) {
             res.status(401).json({ message: "Unauthorized" });
         }
     };

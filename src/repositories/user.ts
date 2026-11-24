@@ -1,4 +1,8 @@
-import { DuplicateError, InvalidCredentialsError, NotFoundError } from "../domain/shared/errors";
+import {
+    DuplicateError,
+    InvalidCredentialsError,
+    NotFoundError,
+} from "../domain/shared/errors";
 import type {
     SessionRepositoryContract,
     UserRepositoryContract,
@@ -17,7 +21,7 @@ export function createUserRepository(db: Database): UserRepositoryContract {
                 if (
                     error instanceof Error &&
                     "sqlState" in error &&
-                    error.sqlState == "23505"
+                    error.sqlState === "23505"
                 ) {
                     throw new DuplicateError(`Email ${email} is already used!`);
                 }

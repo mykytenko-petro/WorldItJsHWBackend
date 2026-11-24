@@ -1,12 +1,12 @@
+import { ValidationError } from "yup";
+import { NotFoundError } from "../../../domain/shared/errors";
 import type { PostServiceContract } from "../../../services/post/post.types";
-import type { PostHandlerContract } from "./post.types";
 import {
     validateCreatePostBody,
     validateGetPostByIdParams,
     validateGetPostsQuery,
 } from "../dto/validation";
-import { ValidationError } from "yup";
-import { NotFoundError } from "../../../domain/shared/errors";
+import type { PostHandlerContract } from "./post.types";
 
 export function createPostHandler(
     service: PostServiceContract,

@@ -1,21 +1,30 @@
-import express from "express";
-import cors, { type CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
-import { db } from "./prisma/db";
-import { createPostRepository } from "./repositories/post";
-import { createPostService } from "./services/post/post";
-import { createPostHandler } from "./transport/post/handlers/post";
-import { createPostRouter } from "./routers/post";
-import { createCategoriesRepository } from "./repositories/categories";
-import { createCategoriesService } from "./services/categories/categories";
-import { createCategoriesHandler } from "./transport/categories/handlers/categories";
-import { createCategoriesRouter } from "./routers/categories";
-import { createSessionRepository, createUserRepository } from "./repositories/user";
-import { createUserService } from "./services/user/user";
-import { createUserHandler } from "./transport/user/handlers/user";
-import { createUserRouter } from "./routers/user";
+import cors, { type CorsOptions } from "cors";
+import express from "express";
+import {
+    hashRefreshToken,
+    signAccessToken,
+    signRefreshToken,
+    verifyAccessToken,
+    verifyRefreshToken,
+} from "./lib/jwt";
 import { hashPassword, verifyPassword } from "./lib/password";
-import { hashRefreshToken, signAccessToken, signRefreshToken, verifyAccessToken, verifyRefreshToken } from "./lib/jwt";
+import { db } from "./prisma/db";
+import { createCategoriesRepository } from "./repositories/categories";
+import { createPostRepository } from "./repositories/post";
+import {
+    createSessionRepository,
+    createUserRepository,
+} from "./repositories/user";
+import { createCategoriesRouter } from "./routers/categories";
+import { createPostRouter } from "./routers/post";
+import { createUserRouter } from "./routers/user";
+import { createCategoriesService } from "./services/categories/categories";
+import { createPostService } from "./services/post/post";
+import { createUserService } from "./services/user/user";
+import { createCategoriesHandler } from "./transport/categories/handlers/categories";
+import { createPostHandler } from "./transport/post/handlers/post";
+import { createUserHandler } from "./transport/user/handlers/user";
 import { createRequireAuth } from "./transport/user/middleware/request-auth";
 
 // config
@@ -55,7 +64,7 @@ const userService = createUserService(
     sessionRepository,
     {
         hashPassword: hashPassword,
-        verifyPassword: verifyPassword
+        verifyPassword: verifyPassword,
     },
     {
         signAccessToken: signAccessToken,
@@ -66,8 +75,8 @@ const userService = createUserService(
         verifyRefreshToken: verifyRefreshToken,
     },
     {
-        hashRefreshToken
-    }
+        hashRefreshToken,
+    },
 );
 const userHandler = createUserHandler(userService);
 const userRouter = createUserRouter(userHandler, requireAuth);

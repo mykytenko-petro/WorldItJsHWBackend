@@ -1,21 +1,17 @@
 export interface PasswordHasherContract {
-    hashPassword: (password: string) => Promise<string>,
-    verifyPassword: (hash: string, password: string) => Promise<boolean>
+    hashPassword: (password: string) => Promise<string>;
+    verifyPassword: (hash: string, password: string) => Promise<boolean>;
 }
 
 export interface TokenSignerContract {
-    signAccessToken: (userId: number) => string,
-    signRefreshToken: (userId: number) => string
-}
+	signAccessToken: (userId: number) => string;
+	signRefreshToken: (userId: number) => string;
 
-export interface TokenVerifierContract {
-    verifyAccessToken: (token: string) => number,
-    verifyRefreshToken: (token: string) => number
-}
+	verifyAccessToken: (token: string) => number;
+	verifyRefreshToken: (token: string) => number;
 
-export interface RefreshTokenHasherContract {
-    hashRefreshToken: (hash: string) => string;
-}
+	hashRefreshToken: (hash: string) => string;
+};
 
 export interface UserServiceContract {
     register: (
@@ -44,5 +40,5 @@ export interface UserServiceContract {
         id: number;
         email: string;
     }>;
-    logout: (refreshToken: string) => Promise<void>
+    logout: (refreshToken: string) => Promise<void>;
 }

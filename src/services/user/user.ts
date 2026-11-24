@@ -1,5 +1,8 @@
 import { InvalidCredentialsError } from "../../domain/shared/errors";
-import type { SessionRepositoryContract, UserRepositoryContract } from "../../domain/user/repository";
+import type {
+    SessionRepositoryContract,
+    UserRepositoryContract,
+} from "../../domain/user/repository";
 import type {
     PasswordHasherContract,
     RefreshTokenHasherContract,
@@ -14,7 +17,7 @@ export function createUserService(
     passwordHasher: PasswordHasherContract,
     tokenSigner: TokenSignerContract,
     tokenVerifier: TokenVerifierContract,
-    refreshTokenHasher: RefreshTokenHasherContract
+    refreshTokenHasher: RefreshTokenHasherContract,
 ): UserServiceContract {
     return {
         async register(email, password) {
@@ -46,8 +49,8 @@ export function createUserService(
             await sessionRepository.create(
                 refreshTokenHasher.hashRefreshToken(refreshToken),
                 user.id,
-                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-            )
+                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            );
 
             return {
                 user: {
@@ -68,7 +71,7 @@ export function createUserService(
             await sessionRepository.update(
                 refreshTokenHasher.hashRefreshToken(refreshToken),
                 refreshTokenHasher.hashRefreshToken(newRefreshToken),
-                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             );
 
             return {
@@ -88,7 +91,7 @@ export function createUserService(
 
         async logout(refreshToken) {
             await sessionRepository.delete(
-                refreshTokenHasher.hashRefreshToken(refreshToken)
+                refreshTokenHasher.hashRefreshToken(refreshToken),
             );
         },
     };
