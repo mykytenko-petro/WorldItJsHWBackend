@@ -1,6 +1,6 @@
 import type { CategoriesRepositoryContract } from "../domain/categories/repository";
-import type { Database } from "./types";
 import { DuplicateError } from "../domain/shared/errors";
+import type { Database } from "./types";
 
 export function createCategoriesRepository(
     db: Database,
@@ -23,7 +23,7 @@ export function createCategoriesRepository(
                 if (
                     error instanceof Error &&
                     "sqlState" in error &&
-                    error.sqlState == "23505"
+                    error.sqlState === "23505"
                 ) {
                     throw new DuplicateError();
                 }

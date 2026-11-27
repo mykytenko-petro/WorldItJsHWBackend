@@ -1,43 +1,17 @@
-import type { Response, CookieOptions } from "express";
-import type { UserServiceContract } from "../../../services/user/user.types";
-import type { UserHandlerContract } from "./user.types";
+import { ValidationError } from "yup";
 import {
     DuplicateError,
     InvalidCredentialsError,
     NotFoundError,
 } from "../../../domain/shared/errors";
-import { ValidationError } from "yup";
+import type { UserServiceContract } from "../../../services/user/user.types";
+import {
+    clearUserTokens,
+    readRefreshToken,
+    setUserTokens,
+} from "../../cookies/user";
 import { validateLoginBody, validateRegisterBody } from "../dto/validation";
-
-const IS_PROD = process.env["NODE_ENV"] === "production";
-
-const BASE_COOKIE_OPTIONS: CookieOptions = {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: IS_PROD,
-};
-
-function setAuthCookies(
-    res: Response,
-    tokens: { accessToken: string; refreshToken: string },
-) {
-    res.cookie("accessToken", tokens.accessToken, {
-        ...BASE_COOKIE_OPTIONS,
-        maxAge: 15 * 60 * 1000,
-        path: "/",
-    });
-
-    res.cookie("refreshToken", tokens.refreshToken, {
-        ...BASE_COOKIE_OPTIONS,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: "/",
-    });
-}
-
-function clearAuthCookies(res: Response) {
-    res.clearCookie("accessToken", { ...BASE_COOKIE_OPTIONS, path: "/" });
-    res.clearCookie("refreshToken", { ...BASE_COOKIE_OPTIONS, path: "/auth" });
-}
+import type { UserHandlerContract } from "./user.types";
 
 export function createUserHandler(
     service: UserServiceContract,
@@ -65,7 +39,7 @@ export function createUserHandler(
                 const { email, password } = await validateLoginBody(req.body);
                 const result = await service.login(email, password);
 
-                setAuthCookies(res, result);
+                setUserTokens(res, result.accessToken, result.refreshToken);
                 res.status(200).json(result.user);
             } catch (error) {
                 if (error instanceof ValidationError) {
@@ -74,15 +48,17 @@ export function createUserHandler(
                     error instanceof InvalidCredentialsError ||
                     error instanceof NotFoundError
                 ) {
-                    res.status(401).json({ error: "Invalid email or password." });
+                    res.status(401).json({
+                        error: "Invalid email or password.",
+                    });
                 }
             }
         },
 
         async refresh(req, res) {
-            const refreshToken = req.cookies?.["refreshToken"];
+            const refreshToken = readRefreshToken(req);
 
-            if (typeof refreshToken !== "string" || !refreshToken) {
+            if (!refreshToken) {
                 res.status(401).json({ error: "Unauthorized" });
                 return;
             }
@@ -90,11 +66,11 @@ export function createUserHandler(
             try {
                 const result = await service.refresh(refreshToken);
 
-                setAuthCookies(res, result);
+                setUserTokens(res, result.accessToken, result.refreshToken);
                 res.status(200).json({ message: "Tokens updated" });
             } catch (error) {
                 if (error instanceof InvalidCredentialsError) {
-                    clearAuthCookies(res);
+                    clearUserTokens(res);
                     res.status(401).json({ error: "Invalid refresh token" });
                 }
             }
@@ -106,9 +82,10 @@ export function createUserHandler(
                 const userId =
                     typeof rawUserId === "number"
                         ? rawUserId
-                        : typeof rawUserId === "string" && rawUserId.trim() !== ""
-                        ? Number(rawUserId)
-                        : NaN;
+                        : typeof rawUserId === "string" &&
+                            rawUserId.trim() !== ""
+                          ? Number(rawUserId)
+                          : NaN;
 
                 if (!Number.isInteger(userId) || userId <= 0) {
                     res.status(401).json({ error: "Unauthorized" });
@@ -125,21 +102,21 @@ export function createUserHandler(
         },
 
         async logout(req, res) {
-            const refreshToken = req.cookies?.["refreshToken"];
+            const refreshToken = readRefreshToken(req);
 
-            if (typeof refreshToken !== "string" || !refreshToken) {
+            if (!refreshToken) {
                 res.status(401).json({ error: "Unauthorized" });
                 return;
             }
 
             try {
                 await service.logout(refreshToken);
-                clearAuthCookies(res);
+                clearUserTokens(res);
 
                 res.status(200).json({ message: "Logged out" });
             } catch (error) {
                 if (error instanceof NotFoundError) {
-                    clearAuthCookies(res);
+                    clearUserTokens(res);
                     res.status(404).json({ error: error.message });
                 }
             }

@@ -1,3 +1,4 @@
+import type { Request, Response } from "express";
 import type {
     NotFoundErrorResponse,
     ValidationErrorResponse,
@@ -7,11 +8,7 @@ import type {
     GetPostByIdParams,
     GetPostsQuery,
 } from "../dto/requests";
-import type {
-    PostResponse,
-    PostWithRelationsResponse,
-} from "../dto/responses";
-import type { Request, Response } from "express";
+import type { PostResponse, PostWithRelationsResponse } from "../dto/responses";
 
 export interface PostHandlerContract {
     getAllPosts: (

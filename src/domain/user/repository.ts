@@ -1,4 +1,4 @@
-import type { UserEntity, SessionEntity } from "./entity";
+import type { SessionEntity, UserEntity } from "./entity";
 
 export interface UserRepositoryContract {
     createUser: (email: string, password: string) => Promise<UserEntity>;

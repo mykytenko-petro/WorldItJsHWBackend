@@ -1,4 +1,4 @@
-import { Router, type RequestHandler } from "express";
+import { type RequestHandler, Router } from "express";
 import type { UserHandlerContract } from "../transport/user/handlers/user.types";
 
 export function createUserRouter(

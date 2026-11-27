@@ -1,11 +1,11 @@
-import type { CategoriesHandlerContract } from "./categories.types";
-import type { CategoriesServiceContract } from "../../../services/categories/categories.types";
-import { DuplicateError, NotFoundError } from "../../../domain/shared/errors";
 import { ValidationError } from "yup";
+import { DuplicateError, NotFoundError } from "../../../domain/shared/errors";
+import type { CategoriesServiceContract } from "../../../services/categories/categories.types";
 import {
     validateCreateCategoryBody,
     validateGetCategoryByIdParams,
 } from "../dto/validation";
+import type { CategoriesHandlerContract } from "./categories.types";
 
 export function createCategoriesHandler(
     service: CategoriesServiceContract,

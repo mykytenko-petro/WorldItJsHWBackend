@@ -11,6 +11,6 @@ export interface SessionEntity {
     tokenHash: string;
     createdAt: Date;
     expiresAt: Date;
-    
+
     userId: number;
 }

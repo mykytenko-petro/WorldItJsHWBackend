@@ -5,7 +5,8 @@ import type { Database } from "./types";
 export function createPostRepository(db: Database): PostRepositoryContract {
     return {
         async getAllPosts(category, take) {
-            const query = db.orm.public.Post.include("category").include("user");
+            const query =
+                db.orm.public.Post.include("category").include("user");
 
             if (category && take) {
                 const matchingCategory = await db.orm.public.Category.where({
@@ -51,11 +52,13 @@ export function createPostRepository(db: Database): PostRepositoryContract {
             }).first();
 
             if (!category) {
-                throw new NotFoundError(`Category with id ${categoryId} not found`);
+                throw new NotFoundError(
+                    `Category with id ${categoryId} not found`,
+                );
             }
 
             const user = await db.orm.public.User.where({
-                id: authorId
+                id: authorId,
             }).first();
 
             if (!user) {
@@ -74,7 +77,7 @@ export function createPostRepository(db: Database): PostRepositoryContract {
                 if (
                     error instanceof Error &&
                     "sqlState" in error &&
-                    error.sqlState == "23505"
+                    error.sqlState === "23505"
                 ) {
                     throw new DuplicateError(`Post already exists!`);
                 }

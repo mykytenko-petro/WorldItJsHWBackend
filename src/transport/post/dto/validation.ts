@@ -1,4 +1,4 @@
-import { number, object, string, type InferType } from "yup";
+import { type InferType, number, object, string } from "yup";
 import { validate } from "../../shared/dto/validation";
 
 const INVALID_CATEGORY_MESSAGE =
