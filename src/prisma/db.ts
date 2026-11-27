@@ -7,5 +7,5 @@ const contractJson = _contractJson as unknown as Contract;
 
 export const db = postgres<Contract>({
     contract: contractJson,
-    url: process.env.DATABASE_URL!,
+    url: process.env["DATABASE_URL"]!,
 });

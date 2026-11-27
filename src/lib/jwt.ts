@@ -3,7 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import jwt from "jsonwebtoken";
 import type { TokenSignerContract } from "../services/user/user.types";
 
-export function createTokenHasher(
+export function createTokenSigner(
     accessTokenSecret: string,
     refreshTokenSecret: string,
 ): TokenSignerContract {

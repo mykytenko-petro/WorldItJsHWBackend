@@ -4,7 +4,7 @@ function required(name: string) {
     if (!value) {
         throw new Error(`${name} is not defined`);
     }
-    
+
     return value;
 }
 
@@ -24,7 +24,7 @@ function optionalInt(name: string, fallback: number) {
     return value;
 }
 
-export function createConfig() {
+export function createConfig(): Config {
     return {
         databaseUrl: required("DATABASE_URL"),
         passwordPepper: Buffer.from(required("PASSWORD_PEPPER"), "hex"),
@@ -33,4 +33,13 @@ export function createConfig() {
         corsOrigin: required("CORS_ORIGIN"),
         serverPort: optionalInt("SERVER_PORT", 8000),
     };
+}
+
+export interface Config {
+    databaseUrl: string;
+    passwordPepper: Buffer;
+    jwtAccessSecret: string;
+    jwtRefreshSecret: string;
+    corsOrigin: string;
+    serverPort: number;
 }

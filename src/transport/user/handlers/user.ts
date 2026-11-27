@@ -1,4 +1,3 @@
-import type { CookieOptions, Response } from "express";
 import { ValidationError } from "yup";
 import {
     DuplicateError,
@@ -6,38 +5,13 @@ import {
     NotFoundError,
 } from "../../../domain/shared/errors";
 import type { UserServiceContract } from "../../../services/user/user.types";
+import {
+    clearUserTokens,
+    readRefreshToken,
+    setUserTokens,
+} from "../../cookies/user";
 import { validateLoginBody, validateRegisterBody } from "../dto/validation";
 import type { UserHandlerContract } from "./user.types";
-
-const IS_PROD = process.env.NODE_ENV === "production";
-
-const BASE_COOKIE_OPTIONS: CookieOptions = {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: IS_PROD,
-};
-
-function setAuthCookies(
-    res: Response,
-    tokens: { accessToken: string; refreshToken: string },
-) {
-    res.cookie("accessToken", tokens.accessToken, {
-        ...BASE_COOKIE_OPTIONS,
-        maxAge: 15 * 60 * 1000,
-        path: "/",
-    });
-
-    res.cookie("refreshToken", tokens.refreshToken, {
-        ...BASE_COOKIE_OPTIONS,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: "/",
-    });
-}
-
-function clearAuthCookies(res: Response) {
-    res.clearCookie("accessToken", { ...BASE_COOKIE_OPTIONS, path: "/" });
-    res.clearCookie("refreshToken", { ...BASE_COOKIE_OPTIONS, path: "/" });
-}
 
 export function createUserHandler(
     service: UserServiceContract,
@@ -65,7 +39,7 @@ export function createUserHandler(
                 const { email, password } = await validateLoginBody(req.body);
                 const result = await service.login(email, password);
 
-                setAuthCookies(res, result);
+                setUserTokens(res, result.accessToken, result.refreshToken);
                 res.status(200).json(result.user);
             } catch (error) {
                 if (error instanceof ValidationError) {
@@ -82,9 +56,9 @@ export function createUserHandler(
         },
 
         async refresh(req, res) {
-            const refreshToken = req.cookies?.refreshToken;
+            const refreshToken = readRefreshToken(req);
 
-            if (typeof refreshToken !== "string" || !refreshToken) {
+            if (!refreshToken) {
                 res.status(401).json({ error: "Unauthorized" });
                 return;
             }
@@ -92,11 +66,11 @@ export function createUserHandler(
             try {
                 const result = await service.refresh(refreshToken);
 
-                setAuthCookies(res, result);
+                setUserTokens(res, result.accessToken, result.refreshToken);
                 res.status(200).json({ message: "Tokens updated" });
             } catch (error) {
                 if (error instanceof InvalidCredentialsError) {
-                    clearAuthCookies(res);
+                    clearUserTokens(res);
                     res.status(401).json({ error: "Invalid refresh token" });
                 }
             }
@@ -104,7 +78,7 @@ export function createUserHandler(
 
         async me(_, res) {
             try {
-                const rawUserId = res.locals.userId;
+                const rawUserId = res.locals["userId"];
                 const userId =
                     typeof rawUserId === "number"
                         ? rawUserId
@@ -128,21 +102,21 @@ export function createUserHandler(
         },
 
         async logout(req, res) {
-            const refreshToken = req.cookies?.refreshToken;
+            const refreshToken = readRefreshToken(req);
 
-            if (typeof refreshToken !== "string" || !refreshToken) {
+            if (!refreshToken) {
                 res.status(401).json({ error: "Unauthorized" });
                 return;
             }
 
             try {
                 await service.logout(refreshToken);
-                clearAuthCookies(res);
+                clearUserTokens(res);
 
                 res.status(200).json({ message: "Logged out" });
             } catch (error) {
                 if (error instanceof NotFoundError) {
-                    clearAuthCookies(res);
+                    clearUserTokens(res);
                     res.status(404).json({ error: error.message });
                 }
             }

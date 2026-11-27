@@ -4,14 +4,14 @@ export interface PasswordHasherContract {
 }
 
 export interface TokenSignerContract {
-	signAccessToken: (userId: number) => string;
-	signRefreshToken: (userId: number) => string;
+    signAccessToken: (userId: number) => string;
+    signRefreshToken: (userId: number) => string;
 
-	verifyAccessToken: (token: string) => number;
-	verifyRefreshToken: (token: string) => number;
+    verifyAccessToken: (token: string) => number;
+    verifyRefreshToken: (token: string) => number;
 
-	hashRefreshToken: (hash: string) => string;
-};
+    hashRefreshToken: (hash: string) => string;
+}
 
 export interface UserServiceContract {
     register: (

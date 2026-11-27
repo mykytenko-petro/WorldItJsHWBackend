@@ -5,9 +5,7 @@ import type {
 } from "../../domain/user/repository";
 import type {
     PasswordHasherContract,
-    RefreshTokenHasherContract,
     TokenSignerContract,
-    TokenVerifierContract,
     UserServiceContract,
 } from "./user.types";
 
@@ -16,8 +14,6 @@ export function createUserService(
     sessionRepository: SessionRepositoryContract,
     passwordHasher: PasswordHasherContract,
     tokenSigner: TokenSignerContract,
-    tokenVerifier: TokenVerifierContract,
-    refreshTokenHasher: RefreshTokenHasherContract,
 ): UserServiceContract {
     return {
         async register(email, password) {
@@ -47,7 +43,7 @@ export function createUserService(
             const refreshToken = tokenSigner.signRefreshToken(user.id);
 
             await sessionRepository.create(
-                refreshTokenHasher.hashRefreshToken(refreshToken),
+                tokenSigner.hashRefreshToken(refreshToken),
                 user.id,
                 new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             );
@@ -63,14 +59,14 @@ export function createUserService(
         },
 
         async refresh(refreshToken) {
-            const userId = tokenVerifier.verifyRefreshToken(refreshToken);
+            const userId = tokenSigner.verifyRefreshToken(refreshToken);
             const user = await userRepository.getUserById(userId);
 
             const newRefreshToken = tokenSigner.signRefreshToken(user.id);
 
             await sessionRepository.update(
-                refreshTokenHasher.hashRefreshToken(refreshToken),
-                refreshTokenHasher.hashRefreshToken(newRefreshToken),
+                tokenSigner.hashRefreshToken(refreshToken),
+                tokenSigner.hashRefreshToken(newRefreshToken),
                 new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             );
 
@@ -91,7 +87,7 @@ export function createUserService(
 
         async logout(refreshToken) {
             await sessionRepository.delete(
-                refreshTokenHasher.hashRefreshToken(refreshToken),
+                tokenSigner.hashRefreshToken(refreshToken),
             );
         },
     };

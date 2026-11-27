@@ -13,7 +13,7 @@ export function createRequireAuth(
         }
 
         try {
-            res.locals.userId = verifyAccessToken(token);
+            res.locals["userId"] = verifyAccessToken(token);
 
             next();
         } catch (_error) {
